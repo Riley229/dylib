@@ -1,7 +1,6 @@
 #!bin/bash
 
-# load contents of catalog file
-source $catalog
+. $catalog
 
 # verifies input isn't empty and provides error message if it is
 function check-input() {
@@ -16,7 +15,7 @@ function check-input() {
 }
 
 # initialize dialog
-echo "Initiating new project dialog..."
+echo "Beginning new project dialog..."
 echo ""
 
 # get project name

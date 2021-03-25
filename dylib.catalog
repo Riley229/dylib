@@ -1,18 +1,46 @@
-libraries=( "Igis" "Scenes" "ScenesAnimations" )
-projects=( "ScenesAnimationExample" )
+libraries=( "Igis" "Scenes" "ScenesAnimations" "ScenesControls" "MerlinKarel" )
+projects=( "ScenesAnimationExample" "ScenesShellBasic" "ScenesPlanetsExample" "ScenesAlphaTransformExample" "ScenesContainmentExample" "ScenesAnimationExample" "ScenesMouseEnterLeaveExample" "ScenesControlsExample" )
 
-Igis_libraryVersion="2.0.2"
-Igis_repository="https://github.com/Riley229/Igis"
+Igis_libraryVersion="1.3.7"
+Igis_repository="https://github.com/TheCoderMerlin/Igis"
 Igis_dependencies=( )
 
-Scenes_libraryVersion="1.1.1111"
-Scenes_repository="https://github.com/Riley229/Scenes"
+Scenes_libraryVersion="1.1.5"
+Scenes_repository="https://github.com/TheCoderMerlin/Scenes"
 Scenes_dependencies=( "Igis" )
 
-
-ScenesAnimations_libraryVersion="0.1.115"
-ScenesAnimations_repository="https://github.com/Riley229/ScenesAnimations"
+ScenesAnimations_libraryVersion="0.1.5"
+ScenesAnimations_repository="https://github.com/TheCoderMerlin/ScenesAnimations"
 ScenesAnimations_dependencies=( "Igis" "Scenes" )
 
-ScenesAnimationExample_repository="https://github.com/Riley229/ScenesAnimationExample"
+ScenesControls_libraryVersion="0.1.0"
+ScenesControls_repository="https://github.com/TheCoderMerlin/ScenesControls"
+ScenesControls_dependencies=( "Igis" "Scenes" )
+
+MerlinKarel_libraryVersion="0.1.7"
+MerlinKarel_repository="https://github.com/TheCoderMerlin/MerlinKarel"
+MerlinKarel_dependencies=( "Igis" "Scenes" "ScenesAnimations" )
+
+ScenesAnimationExample_repository="https://github.com/TheCoderMerlin/ScenesAnimationExample"
 ScenesAnimationExample_dependencies=( "Igis" "Scenes" "ScenesAnimations" )
+
+ScenesShellBasic_repository="https://github.com/TheCoderMerlin/ScenesShellBasic"
+ScenesShellBasic_dependencies=( "Igis" "Scenes" )
+
+ScenesPlanetsExample_repository="https://github.com/TheCoderMerlin/ScenesPlanetsExample"
+ScenesPlanetsExample_dependencies=( "Igis" "Scenes" )
+
+ScenesAlphaTransformExample_repository="https://github.com/TheCoderMerlin/ScenesAlphaTransformExample"
+ScenesAlphaTransformExample_dependencies=( "Igis" "Scenes" )
+
+ScenesContainmentExample_repository="https://github.com/TheCoderMerlin/ScenesContainmentExample"
+ScenesContainmentExample_dependencies=( "Igis" "Scenes" )
+
+ScenesAnimationExample_repository="https://github.com/TheCoderMerlin/ScenesAnimationExample"
+ScenesAnimationExample_dependencies=( "Igis" "Scenes" "ScenesAnimations" )
+
+ScenesMouseEnterLeaveExample_repository="https://github.com/TheCoderMerlin/ScenesMouseEnterLeaveExample"
+ScenesMouseEnterLeaveExample_dependencies=( "Igis" "Scenes" )
+
+ScenesControlsExample_repository="https://github.com/TheCoderMerlin/ScenesControlsExample"
+ScenesControlsExample_dependencies=( "Igis" "Scenes" "ScenesControls" )
