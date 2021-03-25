@@ -1,0 +1,199 @@
+#!bin/bash
+
+buildDir="$workDir/dylibBuildingDirectory"
+source $catalog
+
+# Gather arguments
+if [ "$#" -ne 2 ]; then
+    echo "You must enter exactly 2 command line argument:"
+    echo -e "\tlibraryName"
+    echo -e "\tnewLibraryVersion"
+    exit 1
+fi
+libraryName=$1
+newLibraryVersion=$2
+
+echo "Locating dylib library $libraryName"
+
+if ! [[ " ${libraries[@]} " =~ " ${libraryName} " ]]; then
+    echo "Unable to locate dylib library $libraryName in dylib catalog."
+    echo -e "\tTask aborted"
+    exit 1
+fi
+
+echo "library located, preparing to calculate bumped library versions"
+
+updatedLibraries=( $libraryName )
+updatedLibraryVersions=( $newLibraryVersion )
+updatedLibraryCommitMessages=()
+
+# calculate which libraries need their dependencies updated
+librariesBumped=1
+while [ $librariesBumped -gt 0 ]; do
+    librariesBumped=0
+    for library in "${libraries[@]}"; do
+	libraryDependenciesName=${library}_dependencies
+	typeset -n libraryDependencies=$libraryDependenciesName
+	libraryDependencies=${!libraryDependenciesName}
+	for dependency in "${libraryDependencies[@]}"; do
+	    for updatedLibrary in "${updatedLibraries[@]}"; do
+		if [[ $dependency == $updatedLibrary ]]; then
+		    needToUpdate=true
+		fi
+	    done
+	done
+	
+	for updatedLibrary in "${updatedLibraries[@]}"; do
+	    if [[ $library == $updatedLibrary ]]; then
+		needToUpdate=false
+	    fi
+	done
+	
+	if [[ $needToUpdate == true ]]; then
+	    # add to counter and updatedLibraries array
+	    updatedLibraries+=($library)
+	    librariesBumped+=1
+	fi
+    done
+done
+
+# for each updatedLibrary, calculate their new version numbers
+for updatedLibrary in "${updatedLibraries[@]}"; do
+    libraryVersionName=${updatedLibrary}_libraryVersion
+    libraryVersion=${!libraryVersionName}
+    if [[ $libraryName = $updatedLibrary ]]; then
+	libraryVersion=$newLibraryVersion
+    else
+	lastDigit="${libraryVersion: -1}"
+	lastDigit=$((lastDigit + 1))
+	libraryVersion="${libraryVersion:0:$((${#libraryVersion}-1))}$lastDigit"
+	updatedLibraryVersions+=($libraryVersion)
+    fi
+done
+
+# prompt user to verify/accept bumped library versions
+echo ""
+for libraryId in "${!updatedLibraries[@]}"; do
+    echo "${updatedLibraries[$libraryId]}: ${updatedLibraryVersions[$libraryId]}"
+    read -p "Enter new dylib version (alternatively enter 'y' if calculated version is correct): " versionResponse
+    echo ""
+
+    if ! [[ "$versionResponse" == "y" ]]; then
+	updatedLibraries[$libraryId]=$versionResponse
+    fi
+
+    read -p "Enter optional commit message (if none is enterd, will automatically generate one): " commitMessage
+    echo ""
+
+    if [[ "$commitMessage" == "" ]]; then
+	commitMessage="Bumped library version(s)"
+    fi
+    updatedLibrariesCommitMessages+=($commitMessage)
+done
+
+echo "Preparing building directory..."
+mkdir $buildDir
+pushd $buildDir
+
+function update-libraries() {
+    for libraryId in "${!updatedLibraries[@]}"; do
+	library="${updatedLibraries[$libraryId]}"
+	# edit version in catalog
+	newLibraryVersion="${library}_libraryVersion=\"${updatedLibraryVersions[$libraryId]}\""
+	sed -i "s/^${library}_libraryVersion=.*/$newLibraryVersion/" $catalog
+
+	# clone project and enter directory
+	libraryRepository=${library}_repository
+	git clone ${!libraryRepository}
+	cd $library
+	
+	updatedLibraryDependenciesName=${library}_dependencies
+	typeset -n updatedLibraryDependencies=$updatedLibraryDependenciesName
+
+	# remove current dylib file and create a new one, IF it exists
+	if [ -f "dylib.manifest" ]; then
+	    > "dylib.manifest"
+	    
+	    # for each library, add it as a dependency to dylib file
+	    for dependency in "${updatedLibraryDependencies[@]}"; do
+		isFound=false
+		for updatedLibraryId in "${!updatedLibraries[@]}"; do
+		    if [[ ${updatedLibraries[$updatedLibraryId]} == $dependency ]]; then
+			dependencyVersion=${updatedLibraryVersions[$updatedLibraryId]}
+			isFound=true
+		    fi
+		done
+
+		if ! [[ isFound ]]; then
+		    dependencyVersion=${dependency}_libraryVersion
+		fi
+		echo "$dependency $dependencyVersion" >> dylib.manifest
+	    done
+
+	    git add "dylib.manifest"
+	fi
+
+	# push changes to git
+	git commit -m "${updatedLibrariesCommitMessages[$libraryId]}"
+	git push
+
+	git tag ${updatedLibraryVersions[$libraryId]}
+	git push --tags
+	    
+	# exit directory and remove
+	cd ../
+	rm -rf $library
+    done
+}
+
+function update-projects() {
+    for project in "${projects[@]}"; do
+	projectDependenciesName=${project}_dependencies
+	typeset -n projectDependencies=$projectDependenciesName
+	for dependency in "${projectDependencies[@]}"; do
+	    for updatedLibrary in "${updatedLibraries[@]}"; do
+		[[ $dependency = $updatedLibrary ]] && needToUpdate=true
+	    done
+	done
+
+	if [[ needToUpdate ]]; then
+	    # clone project and enter directory
+	    projectRepository=${project}_repository
+	    git clone ${!projectRepository}
+	    cd $project
+
+	    # remove current dylib file and create a new one
+	    > "dylib.manifest"
+	    
+	    # for each library, add it as a dependency to dylib file
+	    for dependency in "${projectDependencies[@]}"; do
+		isFound=false
+		for updatedLibraryId in "${!updatedLibraries[@]}"; do
+		    if [[ ${updatedLibraries[$updatedLibraryId]} == $dependency ]]; then
+			dependencyVersion=${updatedLibraryVersions[$updatedLibraryId]}
+			isFound=true
+		    fi
+		done
+
+		if ! [[ isFound ]]; then
+		    dependencyVersion=${dependency}_libraryVersion
+		fi
+		echo "$dependency $dependencyVersion" >> dylib.manifest
+	    done
+
+	    git add "dylib.manifest"
+	    git commit -m "Bumped library version(s)"
+	    git push
+	    
+	    # exit directory and remove
+	    cd ../
+	    rm -rf $project
+	fi
+    done
+}
+
+update-libraries
+update-projects
+
+popd
+rm -rf $buildDir

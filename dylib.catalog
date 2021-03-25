@@ -1,0 +1,18 @@
+libraries=( "Igis" "Scenes" "ScenesAnimations" )
+projects=( "ScenesAnimationExample" )
+
+Igis_libraryVersion="2.0.2"
+Igis_repository="https://github.com/Riley229/Igis"
+Igis_dependencies=( )
+
+Scenes_libraryVersion="1.1.1111"
+Scenes_repository="https://github.com/Riley229/Scenes"
+Scenes_dependencies=( "Igis" )
+
+
+ScenesAnimations_libraryVersion="0.1.115"
+ScenesAnimations_repository="https://github.com/Riley229/ScenesAnimations"
+ScenesAnimations_dependencies=( "Igis" "Scenes" )
+
+ScenesAnimationExample_repository="https://github.com/Riley229/ScenesAnimationExample"
+ScenesAnimationExample_dependencies=( "Igis" "Scenes" "ScenesAnimations" )
