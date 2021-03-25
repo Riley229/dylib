@@ -8,6 +8,7 @@ export utilities="$workDir/utilities.sh"
 # command help message
 function dylib-help() {
     echo "dylib provides basic tools which simplify the usage of Merlin dynamic libraries."
+    echo -e "\tmanager     Contains commands usefule for managing all dynamic libraries and projects."
     echo ""
 }
 
