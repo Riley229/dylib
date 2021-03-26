@@ -1,5 +1,6 @@
 #!bin/bash
 
+catalog="$rootDir/dylib.catalog"
 . $catalog
 
 # verifies input isn't empty and provides error message if it is

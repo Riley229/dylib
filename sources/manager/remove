@@ -1,7 +1,8 @@
 #!bin/bash
 
 # load contents of catalog file
-source $catalog
+catalog="$rootDir/dylib.catalog"
+. $catalog
 
 # get command line argument of project-to-remove's name
 if [ "$#" -ne 1 ]; then

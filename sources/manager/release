@@ -1,7 +1,9 @@
 #!bin/bash
 
-buildDir="$workDir/dylibBuildingDirectory"
-source $catalog
+buildDir="$rootDir/dylibBuildingDirectory"
+catalog="$rootDir/dylib.catalog"
+. $catalog
+. "$rootDir/utilities.sh"
 
 # Gather arguments
 if [ "$#" -ne 2 ]; then
@@ -112,23 +114,23 @@ function update-libraries() {
 
 	# remove current dylib file and create a new one, IF it exists
 	if [ -f "dylib.manifest" ]; then
-	    > "dylib.manifest"
-	    
+	    dependencyVersions=()
 	    # for each library, add it as a dependency to dylib file
 	    for dependency in "${updatedLibraryDependencies[@]}"; do
 		isFound=false
 		for updatedLibraryId in "${!updatedLibraries[@]}"; do
 		    if [[ ${updatedLibraries[$updatedLibraryId]} == $dependency ]]; then
-			dependencyVersion=${updatedLibraryVersions[$updatedLibraryId]}
+			dependencyVersions+=( ${updatedLibraryVersions[$updatedLibraryId]} )
 			isFound=true
 		    fi
 		done
 
 		if ! [[ isFound ]]; then
-		    dependencyVersion=${dependency}_libraryVersion
+		    dependencyVersions+=( ${dependency}_libraryVersion )
 		fi
-		echo "$dependency $dependencyVersion" >> dylib.manifest
 	    done
+
+	    generate-dylib "./" updatedLibraryDependencies dependencyVersions
 
 	    git add "dylib.manifest"
 	fi
